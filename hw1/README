@@ -1,0 +1,57 @@
+HW 1
+----
+
+Please finish all the TODOs in comments in the template code in the files below.
+
+Files to finish and run:
+- script_see_files.py is the script that you want to run to execute all your Python methods you need to finish
+- data_loader.py is the file to load data from the data dir. The data dir should be where you put the corresponding
+data from the arc challenge data set
+- explore_data.py is the visualization code that will render the data to a plot and save (example is given to you in plots.
+
+Please see the directory structure as well for where to put your data and plots
+
+Please see the requirements.txt file for libraries to use.
+If you are new to pip and venv, please see:
+https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/
+
+There are many tutorials on the internet and usually your IDE makes it easy to setup.
+
+Submission
+----
+Once done commit your code to GitHub in a subdirectory called "HW1"
+----
+Project: ARC Dataset Visualizer
+
+This project processes and visualizes examples from the ARC (Abstraction and Reasoning Corpus) dataset. Given pairs of input-output grids, it generates plots for exploration and analysis.
+
+Files Overview
+	•	main.py: Walks through JSON files, processes them, and generates visualizations of input-output pairs.
+	•	data_loader.py:
+	•	walk_files(directory): Recursively loads JSON files from the directory and returns them as dictionaries.
+	•	get_example_elements(json_example): Converts input-output pairs from JSON files into NumPy arrays for visualization.
+	•	explore_data.py:
+	•	visualize_explore(examples, title): Generates side-by-side plots of input and output grids, saving them to the ./plots/ directory.
+
+Directory Structure
+
+.
+├── main.py
+├── data_loader.py
+├── explore_data.py
+├── data/ARC-AGI/data/   # Dataset JSON files
+└── plots/               # Output visualizations
+
+Usage
+	1.	Ensure your dataset is in ./data/ARC-AGI/data/.
+	2.	Run the main script:
+
+python main.py
+
+
+	3.	Visualizations will be saved in the ./plots/ directory.
+
+Example Visualization
+
+The visualizer generates side-by-side plots of input and output grids, similar to the ARC dataset tasks. Each cell shows its value, and color-coding is used to enhance clarity.
+
