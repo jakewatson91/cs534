@@ -1,7 +1,6 @@
 import numpy as np
 from collections import deque
 import json
-from itertools import permutations
 
 def parse_files(file):
     with open(file, 'r') as f:
@@ -18,38 +17,22 @@ def bfs_all_combinations(grid, target):
     # print("Q: ", q)
     while q:
         frontier = q.popleft()
-        print("Frontier: ", frontier)
+        # print("Frontier: ", frontier)
         mappings = generate_mapping(frontier, target)
-        print("Mappings: ", mappings)
+        # print("Mappings: ", mappings)
         generated = generate_output(frontier, mappings)
-        print("Generated: ", generated)
+        # print("Generated: ", generated)
         if np.array_equal(generated, target):
             print("Match found: ", mappings)
             return mappings
         generated = tuple(map(tuple, generated))
         if generated not in visited:
             q.append(generated)
-            print("Q: ", q)
+            # print("Q: ", q)
             visited.add(generated)
             # print(visited)
 
     print("No match found.")
-
-# node = [[3, 3, 3],
-#   [0, 0, 0],
-#   [0, 0, 0]]
-
-# target = [[0, 0, 0],
-#   [3, 3, 3],
-#   [0, 0, 0]]
-
-node = [[2, 2, 2],
-  [0, 0, 0],
-  [0, 0, 0]]
-
-target = [[4, 4, 4],
-  [0, 0, 0],
-  [0, 0, 0]]
 
 def generate_mapping(grid, new_grid):
     res = []
