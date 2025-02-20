@@ -1,150 +1,125 @@
 import numpy as np
+from collections import deque
 import json
 
-loss_values = []
+def parse_files(file):
+    with open(file, 'r') as f:
+        data = json.load(f)
+        train = data['train']
+        test = data['test']
+    return train, test
 
+def bfs_all_combinations(grid, target):
+    q = deque([grid]) # create queue with original grid to test each transformation
+    visited = set()
+    scale = True
+    while q:
+        frontier = q.popleft()
+        mappings = generate_mapping(frontier, target)
+        generated = generate_output(frontier, mappings)
+        if np.array_equal(generated, target):
+            print("Match found: ", mappings)
+            return grid, target, mappings
+        generated = tuple(map(tuple, generated))
+        if generated not in visited:
+            q.append(generated)
+            visited.add(generated)
+        scale = False
 
-def goal_test(all_actions, input_example: np.array, output_example: np.array):
-    """
-    Are we at the goal?
-    :param all_actions:
-    :param input_example:
-    :param output_example:
-    :return:
-    """
-    generated = generate_output(input_example, all_actions)
-    pass
+    print("No match found.")
+    return grid, target, mappings
 
-def goal_distance(all_actions, input_example: np.array, output_example: np.array):
-    #TODO add heuristic for how close to goal you are
-    pass
+def generate_mapping(grid, scale=False):
+    res = []
+    visited = set()
 
-def generate_output(input_example, actions):
+    # compare each element in one grid with each element in the other until a match is found
+    rows, cols = len(grid), len(grid[0])
+    for row in range(rows):
+        for col in range(cols):
+            val = grid[row][col]
+            if scale == True: # for bonus
+                new_val = val*2 if val <= 9 else 0
+            else:
+                new_val = val
+            for i in range(rows):
+                for j in range(cols):
+                    if (i, j) not in visited and new_val == target[i][j]:
+                        res.append((val, (row, col), new_val, (i, j))) # (original val, (coordinates), original val, (new coordinates))
+                        visited.add((i, j))
+                        break # move to next col when mapped
+                
+            
+    return res
+
+def generate_output(frontier, actions):
     """
     Given an input and our current mapping, what output would it generate?
     :param input_example:
     :param actions:
     :return:
     """
-    generated = np.full(input_example.shape, fill_value=-1, dtype=np.int8)
+    rows, cols = len(frontier), len(frontier[0])
+    generated = np.full((rows, cols), fill_value=-1, dtype=np.int8)
+
     for action in actions:
-        # for action in all_actions:
+        val_in, (x_in, y_in), val_out, (x_out, y_out) = action
         # where we need to color
-        output_x = action[1][0]  # get x cor of output
-        output_y = action[1][1]
-        input_x = action[0][0]
-        input_y = action[0][1]
-        color = input_example[input_x][input_y]
-        generated[output_x][output_y] = color
+        generated[x_out][y_out] = val_out
     return generated
 
+# translations
 
-def get_actions(input_example: np.array, output_example: np.array, current_actions):
-    """
-    Get the next batch of possible mappings
-    :param input_example:
-    :param output_example:
-    :param current_actions:
-    :return:
-    """
-    actions = simple_correspondence(input_example, output_example)
-    pass
+# def h_flip(grid):
+#     new_grid = grid[::-1]
+#     return new_grid
 
+# def v_flip(grid):
+#     new_grid = [row[::-1] for row in grid[::-1]]
+#     return new_grid
 
-def simple_correspondence(input_example: np.array, output_example: np.array):
-    pass
+# def d_flip(grid):
+#     new_grid = [list(row) for row in zip(*grid)]
+#     return new_grid
 
+# def rotate(grid): 
+#     new_grid = [list(row) for row in zip(*(grid[::-1]))]
+#     return new_grid
 
-def generate_child(action, current_actions):
-    # used in greedy_search
-        pass
+# def v_shift(grid):
+#     new_grid = [grid[i-1] for i in range(len(grid))]
+#     return new_grid
 
+# def h_shift(grid):
+#     transpose = d_flip(grid)
+#     shift = v_shift(transpose)
+#     new_grid = d_flip(shift)
+#     return new_grid
 
-def greedy_search(input_example: np.array, output_example: np.array, goal_test, frontier, explored):
-    # TODO implement BFS but now using a frontier that picks child based on distance to goal using goal distance func
+# def scale(grid):
+#     new_grid = [list(row[:]) for row in grid]
+#     rows = len(grid)
+#     cols = len(grid[0])
+#     for row in range(rows):
+#         for col in range(cols):
+#             if grid[row][col] >= 9:
+#                 new_grid[row][col] = 0
+#             else:
+#                 new_grid[row][col] *= 2
+#     return new_grid
 
-    """
-        Once the function is found return the function itself as defined below
+if __name__ in "__main__":
 
-    :return: an array of tuples of coordinate mappings like:
-                [( (1, (0,0)), (1, (0,1)) ), ..., ( (0, (1,0)), (0, (1,1)) ), ...]
-                where the first element of each tuple contains the value and its coordinate (also a tuple) from the input
-                and the second element of each tuple contains the value and its coordinate to the output.
+    files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json']
+    for file in files:
+        train, test = parse_files(file)
+        for pair in zip(train):
+            grid = pair[0]['input']
+            # print("Grid: ", grid)
+            target = pair[0]['output']
+            # print("Target: ", target)
 
-
-                For example, if we have input:
-
-                [[3, 3, 3],
-                  [0, 0, 0],
-                  [0, 0, 0]]
-
-                  Then the first tuple of a function like [(3, (0, 0)), (3, (1, 1)),...]
-
-                  means take the 3 and coordinates 0, 0 in the input and map it to value 3 at 1, 1 in the output
-
-                  The output  after this mapping would be:
-                  [[-, -, -],
-                  [-, 3, -],
-                  [-, -, -]] where "-" just means we have not set a value for that cell yet in this example
-
-    """
-    # .....
-    # We can search for a function first ignoring colors
-    # then we can just add the colors back at the end
-    function_with_colors = add_colors(found_function)
-    pass
-
-
-def get_example_elements(json_example):
-    """
-    Load the data
-    :param json_example:
-    :return:
-    """
-    train = json_example["train"]
-
-    pairs = []
-    for pair in train:
-        input = pair["input"]
-        output = pair["output"]
-
-        example = {}
-        example["input"] = np.array(input)
-        example["output"] = np.array(output)
-        pairs.append(example)
-    return pairs
-
-
-def add_colors(found_function):
-    pass
-
-
-# ..........................................................................
-# .............. Entry code to run Greedy Best First Search  ...............
-# ..........................................................................
-
-#TODO: Note we want to point this to any json file
-with open('data/data_0.json', 'r') as file:
-    train_data = json.load(file)
-
-    examples = get_example_elements(train_data)
-    passed = 0
-    for example in examples:
-        input = example["input"]
-        output = example["output"]
-
-        start_state_actions = set()
-        frontier = None # TODO what data structure should we use?
-        #TODO add the start actions to the frontier
-        explored = []
-        found_function = greedy_search(input, output, goal_test, frontier, explored)
-
-        if found_function is not None:
-            print("--=== Trained Model found ===--")
-            # Add colors
-            function_with_colors = add_colors(found_function)
-            for mapping in function_with_colors:
-                print(mapping)
-        else:
-            print("--=== Trained Model NOT found ===--")
-        break
+            grid, target, mappings = bfs_all_combinations(grid, target)
+            print(f"Original grid: {grid}")
+            print(f"Target grid: {target}")
+            print(f"Mappings: {mappings}")
