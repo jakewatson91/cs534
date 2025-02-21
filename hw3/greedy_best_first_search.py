@@ -17,9 +17,10 @@ def bfs_all_combinations(grid, target):
         frontier = q.popleft()
         mappings = generate_mapping(frontier, target)
         generated = generate_output(frontier, mappings)
+        print("Generated: ", generated)
         if np.array_equal(generated, target):
             print("Match found: ", mappings)
-            return grid, target, mappings
+            return mappings
         generated = tuple(map(tuple, generated))
         if generated not in visited:
             q.append(generated)
@@ -27,11 +28,11 @@ def bfs_all_combinations(grid, target):
         scale = False
 
     print("No match found.")
-    return grid, target, mappings
 
 def generate_mapping(grid, scale=False):
     res = []
     visited = set()
+    mapped = set()
 
     # compare each element in one grid with each element in the other until a match is found
     rows, cols = len(grid), len(grid[0])
@@ -44,12 +45,11 @@ def generate_mapping(grid, scale=False):
                 new_val = val
             for i in range(rows):
                 for j in range(cols):
-                    if (i, j) not in visited and new_val == target[i][j]:
+                    if (i, j) not in visited and (row, col) not in mapped and new_val == target[i][j]:
                         res.append((val, (row, col), new_val, (i, j))) # (original val, (coordinates), original val, (new coordinates))
-                        visited.add((i, j))
+                        visited.add((i, j)) # don't map same destination twice
+                        mapped.add((row, col)) # don't map same source twice
                         break # move to next col when mapped
-                
-            
     return res
 
 def generate_output(frontier, actions):
@@ -119,7 +119,6 @@ if __name__ in "__main__":
             target = pair[0]['output']
             # print("Target: ", target)
 
-            grid, target, mappings = bfs_all_combinations(grid, target)
             print(f"Original grid: {grid}")
             print(f"Target grid: {target}")
-            print(f"Mappings: {mappings}")
+            mappings = bfs_all_combinations(grid, target)

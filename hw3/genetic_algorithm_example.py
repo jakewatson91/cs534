@@ -23,7 +23,7 @@ def crossover(parent1, parent2):
 
 
 def mutate(individual, mutation_rate):
-    # randomnly mutate every letter in child if random > mutation rate
+    # randomnly mutates letter in child if random < mutation rate
     individual_list = list(individual)
     for i in range(len(individual_list)):
         if random.random() < mutation_rate:
