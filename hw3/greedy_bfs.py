@@ -1,6 +1,7 @@
 import numpy as np
 from collections import deque
 import json
+import copy
 
 def parse_files(file):
     with open(file, 'r') as f:
@@ -10,62 +11,63 @@ def parse_files(file):
     return train, test
 
 def bfs_all_combinations(grid, target):
-    q = deque([grid]) # create queue with original grid to test each transformation
+    iterations = 0
+    q = deque([(grid, [])]) # create queue with original grid to test each transformation
+    generated = np.full((len(grid), len(grid[0])), fill_value=-1, dtype=np.int8)
+    generated = generated.tolist()
     visited = set()
-    scale = True
+    
     while q:
-        frontier = q.popleft()
-        mappings = generate_mapping(frontier, target)
-        generated = generate_output(frontier, mappings)
-        print("Generated: ", generated)
-        if np.array_equal(generated, target):
-            print("Match found: ", mappings)
+        print("Q: ", q)
+        frontier, cur_mappings = q.popleft()
+        next_mapping = generate_mapping(frontier, target)
+        mappings = cur_mappings + [next_mapping]
+        print(mappings)
+        cur_generation = generate_output(frontier, next_mapping, generated)
+        print(cur_generation)
+        if np.array_equal(cur_generation, target):
+            print(f"Match found after {iterations} iterations!")
+            print("Length: ", len(mappings))
             return mappings
-        generated = tuple(map(tuple, generated))
-        if generated not in visited:
-            q.append(generated)
-            visited.add(generated)
-        scale = False
+        generated_tuple = tuple(map(tuple, cur_generation))
+        if generated_tuple not in visited: # needs to be tuple to add to set
+            q.append((cur_generation, mappings))
+            visited.add(generated_tuple)
+        iterations += 1
 
     print("No match found.")
 
-def generate_mapping(grid, scale=False):
+def generate_mapping(frontier, target):
     res = []
     visited = set()
     mapped = set()
 
     # compare each element in one grid with each element in the other until a match is found
-    rows, cols = len(grid), len(grid[0])
+    rows, cols = len(frontier), len(frontier[0])
     for row in range(rows):
         for col in range(cols):
-            val = grid[row][col]
-            if scale == True: # for bonus
-                new_val = val*2 if val <= 9 else 0
-            else:
-                new_val = val
+            if (row, col) in mapped:
+                continue
+            val = frontier[row][col]
+            new_val = val
             for i in range(rows):
                 for j in range(cols):
                     if (i, j) not in visited and (row, col) not in mapped and new_val == target[i][j]:
-                        res.append((val, (row, col), new_val, (i, j))) # (original val, (coordinates), original val, (new coordinates))
                         visited.add((i, j)) # don't map same destination twice
                         mapped.add((row, col)) # don't map same source twice
-                        break # move to next col when mapped
-    return res
+                        # break # move to next col when mapped
+                        return (val, (row, col), new_val, (i, j)) # (original val, (coordinates), original val, (new coordinates))
 
-def generate_output(frontier, actions):
+def generate_output(frontier, mapping, generated):
     """
     Given an input and our current mapping, what output would it generate?
     :param input_example:
     :param actions:
     :return:
     """
-    rows, cols = len(frontier), len(frontier[0])
-    generated = np.full((rows, cols), fill_value=-1, dtype=np.int8)
-
-    for action in actions:
-        val_in, (x_in, y_in), val_out, (x_out, y_out) = action
-        # where we need to color
-        generated[x_out][y_out] = val_out
+    generated = copy.deepcopy(generated)
+    _, (_, _), new_val, (new_x, new_y) = mapping
+    generated[new_x][new_y] = new_val
     return generated
 
 # translations
@@ -122,3 +124,4 @@ if __name__ in "__main__":
             print(f"Original grid: {grid}")
             print(f"Target grid: {target}")
             mappings = bfs_all_combinations(grid, target)
+            print("Mappings: ", mappings)
