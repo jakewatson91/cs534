@@ -3,6 +3,13 @@ import numpy as np
 import json
 import matplotlib.pyplot as plt
 
+def parse_files(file):
+        with open(file, 'r') as f:
+            data = json.load(f)
+            train = data['train']
+            test = data['test']
+        return train, test
+
 def calculate_fitness(target, individual):
     fitness = 0
     for i in range(len(individual)):
@@ -16,8 +23,9 @@ def create_individual(individual): # flattened array # should just be input
     individual = [individual[row][col] for row in range(len(individual)) for col in range(len(individual[0]))] # flatten
     return individual
 
-def crossover(parent1, parent2):
-    crossover_idx = random.randint(1, len(parent1) - 1) # can't be first or last cell
+def crossover(parent1, parent2, crossover_idx=None):
+    if not crossover_idx:
+       crossover_idx = random.randint(1, len(parent1) - 1) # can't be first or last cell
     child1 = parent1[:crossover_idx] + parent2[crossover_idx:]
     child2 = parent2[:crossover_idx] + parent1[crossover_idx:]
     return child1, child2
@@ -51,7 +59,7 @@ def generate_mappings(initial, target):
                         break
     return res
 
-def genetic_algorithm(target, individual, population_size, mutation_rate, generations):
+def genetic_algorithm(target, individual, population_size, mutation_rate, generations, crossover_index=None):
     # target_array = np.array(target)
     mappings = []
     fitness_scores_list = []
@@ -85,7 +93,7 @@ def genetic_algorithm(target, individual, population_size, mutation_rate, genera
             parent2 = random.choice(parents)
             # print("Parent1: ", parent1)
             # print("Parent2: ", parent2)
-            child1, child2 = crossover(parent1, parent2)
+            child1, child2 = crossover(parent1, parent2, crossover_index)
             # print("Child1: ", child1)
             # print("Child2: ", child2  )
             new_population.append(mutate(child1, mutation_rate))
@@ -124,42 +132,37 @@ def genetic_algorithm(target, individual, population_size, mutation_rate, genera
     """
 
 #TODO find parameters that work for you and use target in your goal test or fitness function
-population_size = 100
-mutation_rate = 0.1
-generations = 10000
 
-def parse_files(file):
-    with open(file, 'r') as f:
-        data = json.load(f)
-        train = data['train']
-        test = data['test']
-    return train, test
+if __name__ == '__main__':
+    population_size = 100
+    mutation_rate = 0.1
+    generations = 10000
 
-files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json']
+    files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json']
 
-for i, file in enumerate(files):
-    train, test = parse_files(file)
-    # print(train)
+    for i, file in enumerate(files):
+        train, test = parse_files(file)
+        # print(train)
 
-    plt.figure()
+        plt.figure()
 
-    for dict in test:
-        print(dict)
-        individual = dict['input']
-        target = dict['output']
+        for dict in test:
+            print(dict)
+            individual = dict['input']
+            target = dict['output']
 
-        final, generation, mappings, fitness_scores_list = genetic_algorithm(target, individual, population_size, mutation_rate, generations)
-        print("Initial: ", individual)
-        print("Final: ", final)
-        # print(final == target)
-        print("Mappings: ", mappings)
+            final, generation, mappings, fitness_scores_list = genetic_algorithm(target, individual, population_size, mutation_rate, generations)
+            print("Initial: ", individual)
+            print("Final: ", final)
+            # print(final == target)
+            print("Mappings: ", mappings)
 
-        x = list(range(len(fitness_scores_list)))
-        y = fitness_scores_list[::-1]
-        plt.plot(x, y)
-    plt.legend()
-    plt.xlabel("Generation")
-    plt.ylabel("Fitness Loss")
-    plt.title(f"{file}")
-    # plt.show()
-    plt.savefig(f"plots/genetic_algo_plot_file_{i}")
+            x = list(range(len(fitness_scores_list)))
+            y = fitness_scores_list[::-1]
+            plt.plot(x, y)
+        plt.legend()
+        plt.xlabel("Generation")
+        plt.ylabel("Fitness Loss")
+        plt.title(f"{file}")
+        # plt.show()
+        plt.savefig(f"plots/genetic_algo_plot_file_{i}")
