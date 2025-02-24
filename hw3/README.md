@@ -42,6 +42,9 @@ Genetic Algorithm & Greedy Search for Grid Transformations
 
 📌 Overview
 
+The code for the genetic algorithm is in `genetic_algo.py`
+The code for GBFS is in `bfs.py`
+
 This repository contains implementations of two algorithms for learning mappings between input and output grids:
 	1.	Genetic Algorithm (GA) – Evolves a population of candidate solutions to learn transformation rules.
 	2.	Greedy Best-First Search (GBFS) – Uses a heuristic-driven approach to find an optimal mapping.
