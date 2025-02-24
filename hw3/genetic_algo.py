@@ -1,6 +1,7 @@
 import random 
 import numpy as np
 import json
+import matplotlib.pyplot as plt
 
 def calculate_fitness(target, individual):
     fitness = 0
@@ -53,6 +54,7 @@ def generate_mappings(initial, target):
 def genetic_algorithm(target, individual, population_size, mutation_rate, generations):
     # target_array = np.array(target)
     mappings = []
+    fitness_scores_list = []
     target_flat = [target[row][col] for row in range(len(target)) for col in range(len(target[0]))]
     individual_flat = [individual[row][col] for row in range(len(individual)) for col in range(len(individual[0]))] # flatten
 
@@ -61,14 +63,17 @@ def genetic_algorithm(target, individual, population_size, mutation_rate, genera
     for generation in range(generations):
         fitness_scores = [(calculate_fitness(target_flat, individual_flat), individual_flat) for individual_flat in population]
         fitness_scores.sort(key=lambda x: x[0], reverse=True)
-        print(fitness_scores)
+        # print(fitness_scores)
 
-        if fitness_scores[0][0] == len(target_flat):
+        best_fitness = fitness_scores[0][0]
+        fitness_scores_list.append(best_fitness)
+
+        if best_fitness == len(target_flat):
             final = np.reshape(fitness_scores[0][1], np.array(target).shape)
             mappings = generate_mappings(individual, final)
             print(f"Match found after {generation} generations!")
-            return final, generation, mappings
-        
+            return final, generation, mappings, fitness_scores_list
+
         parents = [individual_flat for _, individual_flat in fitness_scores[:population_size // 2]]
         
         new_population = []
@@ -90,14 +95,8 @@ def genetic_algorithm(target, individual, population_size, mutation_rate, genera
         population = new_population
     
     print("No match found.")
-    return final, generation, mappings
+    return final, generation, mappings, fitness_scores_list
 
-    # population = [create_individual()]
-    #TODO (1) create initial population (generation 1)
-    #TODO (2) for each generation
-    #TODO (3) if generation contains an individual (i.e., mapping function) stop and return
-    #TODO (4) choose parents using fitness function (i.e., goal score) and produce next generation using crossover
-    #TODO (5) update generation and repeat starting at (2) above
     """
         Once the function is found return the function itself as defined below
 
@@ -125,7 +124,6 @@ def genetic_algorithm(target, individual, population_size, mutation_rate, genera
     """
 
 #TODO find parameters that work for you and use target in your goal test or fitness function
-target_functions = [[3, 3],[0, 0]]
 population_size = 100
 mutation_rate = 0.1
 generations = 10000
@@ -137,16 +135,31 @@ def parse_files(file):
         test = data['test']
     return train, test
 
-train, test = parse_files('data/data_3.json')
-print(train)
+files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json']
 
-for dict in train:
-    print(dict)
-    individual = dict['input']
-    target = dict['output']
+for i, file in enumerate(files):
+    train, test = parse_files(file)
+    # print(train)
 
-    final, generation, mappings = genetic_algorithm(target, individual, population_size, mutation_rate, generations)
-    print("Initial: ", individual)
-    print("Final: ", final)
-    print(final == target)
-    print("Mappings: ", mappings)
+    plt.figure()
+
+    for dict in test:
+        print(dict)
+        individual = dict['input']
+        target = dict['output']
+
+        final, generation, mappings, fitness_scores_list = genetic_algorithm(target, individual, population_size, mutation_rate, generations)
+        print("Initial: ", individual)
+        print("Final: ", final)
+        # print(final == target)
+        print("Mappings: ", mappings)
+
+        x = list(range(len(fitness_scores_list)))
+        y = fitness_scores_list[::-1]
+        plt.plot(x, y)
+    plt.legend()
+    plt.xlabel("Generation")
+    plt.ylabel("Fitness Loss")
+    plt.title(f"{file}")
+    # plt.show()
+    plt.savefig(f"plots/genetic_algo_plot_file_{i}")
