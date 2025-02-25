@@ -82,21 +82,27 @@ python genetic_algo.py
 ✅ Saves fitness loss vs. generations plots and crossover index vs. generations plots in the plots/ directory.
 
 📊 Example Output:
-
-Processing data/data_0.json...
-No match found.
-Processing data/data_1.json...
 Match found after 350 generations!
 
 Plots will be saved as:
-📌 plots/genetic_algo_plot_file_0.png – Fitness loss vs. Generations
-📌 plots/genetic_algo_plot_file_1.png – Fitness loss vs. Generations
-📌 plots/crossover_tests.png – Crossover Index vs. Convergence Speed
+📌 plots/genetic_algo_plot_file_0.png
+📌 plots/genetic_algo_plot_file_1.png
+📌 plots/crossover_tests.png 
 
 🔍 Crossover Index Impact on Convergence
 	•	Crossover points near the center generally result in faster convergence.
 	•	Crossover points near the edges lead to slower convergence, likely due to less genetic diversity being introduced per generation.
 	•	The optimal crossover point varies based on input complexity.
+
+🔍 BFS vs. Genetic Search:
+	•	Greedy Breadth-First Search (GBFS): Explores all possible actions (brute force) at each depth before moving deeper. It systematically finds the shortest path can be computationally expensive.
+	•	Genetic Search: Uses evolutionary principles (mutation, crossover, selection) to explore solutions. It’s more flexible but can take longer, especially in complex state spaces.
+
+    Key Differences:
+        •	BFS is exhaustive and guarantees the shortest path but scales poorly in large spaces.
+        •	Genetic search is heuristic-based, allowing faster convergence on good solutions but with no guarantee of optimality.
+
+    Genetic search is better for exploring unknown or vast state spaces, while BFS and GBFS are more structured but can be computationally limiting.		
 
 🔍 Running the Greedy Search Algorithm
 
