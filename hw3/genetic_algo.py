@@ -138,7 +138,7 @@ if __name__ == '__main__':
     mutation_rate = 0.1
     generations = 10000
 
-    files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json']
+    files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json', 'data/data_bonus.json']
 
     for i, file in enumerate(files):
         train, test = parse_files(file)

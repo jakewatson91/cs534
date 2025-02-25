@@ -34,10 +34,27 @@ def generate_output(input_example, actions):
     generated = np.full(input_example.shape, fill_value=-1, dtype=np.int8)  # Initialize empty grid
 
     for action in actions:
-        val, (old_x, old_y), new_val, (new_x, new_y) = action
-        generated[new_x, new_y] = input_example[old_x, old_y]
+        _, (_, _), new_val, (new_x, new_y) = action
+        generated[new_x, new_y] = new_val
     return generated
 
+def scale(grid):
+    actions = set()
+    rows, cols = grid.shape
+
+    for r in range(rows):
+        for c in range(cols):
+            old_val = grid[r, c]
+
+            if old_val < 9:
+                new_val = old_val * 2
+            else:
+                new_val = 0
+            
+            if old_val != new_val:
+                actions.add((old_val, (r, c), new_val, (r, c)))
+    
+    return actions
 
 def get_actions(grid, new_grid):
     """
@@ -54,9 +71,8 @@ def get_actions(grid, new_grid):
 
     for r in range(rows):
         for c in range(cols):
-            if (r, c) in visited_inputs:  # Skip if already mapped
+            if (r, c) in visited_inputs:  # skip if already mapped
                 continue
-
             val = grid[r, c]
             found = False
 
@@ -67,10 +83,10 @@ def get_actions(grid, new_grid):
                         visited_inputs.add((r, c))
                         visited_outputs.add((r2, c2))
                         found = True
-                        break  # Stop after finding one valid match
+                        break  # stop inner loop after finding one match
 
                 if found:
-                    break  # Ensure only one match per input position
+                    break  # one match per input position
 
     return actions
 
@@ -85,24 +101,29 @@ def greedy_search(input_example, output_example):
     distances = []
 
     while frontier:
-        frontier.sort(key=lambda x: x[0])  # Sort by lowest goal distance
+        frontier.sort(key=lambda x: x[0])  # sort by lowest goal distance
         distance, actions = frontier.pop(0)  
-        
+
         goal_reached = goal_test(actions, input_example, output_example)
         if goal_reached:
-            return actions, iterations, len(distances), distances  # Return the correct mapping function
+            return actions, iterations, len(distances), distances  
 
         explored.add(tuple(actions))
 
-        # Generate new possible actions
         new_actions = get_actions(input_example, output_example)
-        for action in new_actions:
+        scaled_actions = scale(input_example) 
+
+        all_actions = new_actions | scaled_actions # combine sets of actions
+
+        for action in all_actions:  
             child = set(actions)
             child.add(action)
+
             if tuple(child) not in explored:
                 new_distance = goal_distance(child, input_example, output_example)
                 distances.append(new_distance)
-                frontier.append((new_distance, child))  # Add new state
+                frontier.append((new_distance, child))
+
         iterations += 1
 
 def get_example_elements(json_example):
@@ -121,7 +142,7 @@ def get_example_elements(json_example):
     return pairs
 
 
-files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json']
+files = ['data/data_0.json', 'data/data_1.json', 'data/data_2.json', 'data/data_3.json', 'data/data_bonus.json']
 for i, file in enumerate(files):
     with open(file, 'r') as f:
         data = json.load(f)
@@ -132,7 +153,7 @@ for i, file in enumerate(files):
             input_grid = example["input"]
             output_grid = example["output"]
 
-            print("/nInitial: ", input_grid)
+            print("\nInitial: ", input_grid)
             print("Final: ", output_grid)
 
             found_function, iterations, total_children, distances = greedy_search(input_grid, output_grid)
