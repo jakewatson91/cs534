@@ -1,0 +1,6 @@
+(define (problem BLOCKS-B)
+(:domain BLOCKS)
+(:objects B - block)
+(:INIT (count-1 B)) 
+(:goal (position-5 B))
+)
